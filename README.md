@@ -10,3 +10,7 @@ Currently, only the SNES version of Toy Story is supported. A Genesis version of
 
 # How it works
 With the help of an emulator (such as BSNES-Plus), a save state can be made after all the assets have been loaded into RAM. Most of the assets in the game are compressed and need to be uncompressed and loaded into RAM before a level can be played. A save state therefor contains the full data of the level, which can then be exported to a level editor. A python script reads data from the save state and then creates a Tiled map file. This file can then be opened in Tiled and should contain the full level. Most of what the Python script is doing is converting and formatting data to the correct format.
+
+Toy Story uses tiles to represent levels. Tiles are 32x32 pixels in size and there can be a total of 8192 tiles per level. Each tile is 1 byte in size which means that there can be a total of 256 different tiles in a level, with tile index 0 being an empty tile, and tile 254 and 255 being bonus stars spinning in different directions.
+
+The script also handles creatures. Creatures are any moving object, obstacle, enemy or other interactable entity. These are stored in 48 bytes per creature, and there can be a total of 48 creatures at a time in one level.
