@@ -24,7 +24,7 @@ The script also handles creatures. Creatures are any moving object, obstacle, en
 # Setup
 At the moment, this is how I set up my workflow.
 The process is divided into two scripts:
-*state2level.py: This script imports save state data and outputs Tiled CSV level data
+\nstate2level.py: This script imports save state data and outputs Tiled CSV level data
 *level2state.py: This script does the opposite; importing Tiled CSV level data and writes the data into a save state
 
 Here's how the scripts can be integrated with Tiled:
