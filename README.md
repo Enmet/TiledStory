@@ -16,10 +16,10 @@ Toy Story uses tiles to represent levels. Tiles are 32x32 pixels in size and the
 The script also handles creatures. Creatures are any moving object, obstacle, enemy or other interactable entity. These are stored in 48 bytes per creature, and there can be a total of 48 creatures at a time in one level.
 
 # Requirements 
--BSNES-Plus-v05 - Most SNES emulators with save state support should work if you know how to enter your own offset and file size of state, but this is the emulator that the scripts have been setup with.
--Python 3.12.1 - This is the version that I've been using but older versions of python 3 may work as well.
--Tiled Map Editor - I've been using 1.10.2, which is the latest version as of writing.
--Unheadered SNES ROM of Toy Story, US-version.
+- BSNES-Plus-v05 - Most SNES emulators with save state support should work if you know how to enter your own offset and file size of state, but this is the emulator that the scripts have been setup with.
+- Python 3.12.1 - This is the version that I've been using but older versions of python 3 may work as well.
+- Tiled Map Editor - I've been using 1.10.2, which is the latest version as of writing.
+- Unheadered SNES ROM of Toy Story, US-version.
 
 # Setup
 At the moment, this is how I set up my workflow.
@@ -31,11 +31,11 @@ The process is divided into two scripts:
 Here's how the scripts can be integrated with Tiled:
 1. Create some custom commands inside of Tiled (File->Commands->Edit Commands...).
 2. \<new command> should appear in the list. Click it and rename it to create and name a new command.
-   -Let's start with "Import from Save State". The fields can be filled out like this:
-    -Executable: Link to the python runtime. (Example: C:/Python3/python.exe)
-     -Arguments: FILE.PY STATE.BST MAPFILE.TMX PATH/TO/MAP (Example: state2level.py "C:/Program Files/BSNES-Plus-v05/states/Toy Story (U) [!]-1.bst" %mapfile %mappath)
-      -Working Directory: Path to the folder where the python scripts are located, but this can be specified in the first argument instead.
-   -Shortcut: Optional key command
+   - Let's start with "Import from Save State". The fields can be filled out like this:
+    - Executable: Link to the python runtime. (Example: C:/Python3/python.exe)
+     - Arguments: FILE.PY STATE.BST MAPFILE.TMX PATH/TO/MAP (Example: state2level.py "C:/Program Files/BSNES-Plus-v05/states/Toy Story (U) [!]-1.bst" %mapfile %mappath)
+      - Working Directory: Path to the folder where the python scripts are located, but this can be specified in the first argument instead.
+   - Shortcut: Optional key command
    Make sure to also enable "Show output in Console view" as it provides some useful data about the level and potential warnings.
    Note that %mapfile and %mappath are variables that Tiled will automatically fill out from the level that you are working on, so there's no need to change these unless you're running the script outside of Tiled.
 4. Repeat step 2, this time, create a new command for exporting and call it "Export to Save State". Fill it out the same way except for these arguments: level2state.py %mapfile STATE.BST %mappath
