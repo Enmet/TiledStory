@@ -1,5 +1,6 @@
 # TiledStory
 Development tools for editing and creating custom levels for Disney's Toy Story (Super Nintendo/Sega Genesis)
+
 ![Screenshot of the first level of Toy Story in Tiled](https://i.imgur.com/gOryVqy.jpg)
 
 # About
@@ -34,12 +35,12 @@ Here's how the scripts can be integrated with Tiled:
 2. \<new command> should appear in the list. Click it and rename it to create and name a new command.
    - Let's start with "Import from Save State". The fields can be filled out like this:
    - Executable: Link to the python runtime. (Example: C:/Python3/python.exe)
-   - Arguments: FILE.PY STATE.BST MAPFILE.TMX PATH/TO/MAP (Example: state2level.py "C:/Program Files/BSNES-Plus-v05/states/Toy Story (U) [!]-1.bst" %mapfile %mappath)
+   - Arguments: **FILE.PY STATE.BST MAPFILE.TMX PATH/TO/MAP** (Example: **state2level.py "C:/Program Files/BSNES-Plus-v05/states/Toy Story (U) [!]-1.bst" %mapfile %mappath**)
    - Working Directory: Path to the folder where the python scripts are located, but this can be specified in the first argument instead.
    - Shortcut: Optional key command
    Make sure to also enable "Show output in Console view" as it provides some useful data about the level and potential warnings.
    Note that %mapfile and %mappath are variables that Tiled will automatically fill out from the level that you are working on, so there's no need to change these unless you're running the script outside of Tiled.
-4. Repeat step 2, this time, create a new command for exporting and call it "Export to Save State". Fill it out the same way except for these arguments: level2state.py %mapfile STATE.BST %mappath
+4. Repeat most of step 2, but this time, create a new command for exporting and call it "Export to Save State". Fill it out the same way except for these arguments: **level2state.py %mapfile STATE.BST %mappath**
 5. Create a new map file (File->New->New Map...). Just click OK when a new box appears, the script will fill out the dimensions for us.
 6. Use the command feature to import the level data (File->Commands->Import from Save State).
 7. In order to actually see anything, a tileset is required. The script specifies the tileset to be the name of the level in-game and the path is specified to be inside a folder called Tilesets, relative to where the map is.
