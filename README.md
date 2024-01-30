@@ -40,6 +40,8 @@ Here's how the scripts can be integrated with Tiled:
    Note that %mapfile and %mappath are variables that Tiled will automatically fill out from the level that you are working on, so there's no need to change these unless you're running the script outside of Tiled.
 4. Repeat step 2, this time, create a new command for exporting and call it "Export to Save State". Fill it out the same way except for these arguments: level2state.py %mapfile STATE.BST %mappath
 5. Create a new map file (File->New->New Map...). Just click OK when a new box appears, the script will fill out the dimensions for us.
-6. Use the command feature to import the level data (File->Commands->Import from Save State). 
+6. Use the command feature to import the level data (File->Commands->Import from Save State).
+7. In order to actually see anything, a tileset is required. The script specifies the tileset to be the name of the level in-game and the path is specified to be inside a folder called Tilesets, relative to where the map is..
+   - For example: From the first level, file test.tmx is saved to C:/Tiled/Maps/test.tmx. Tileset will be loaded from C:/Tiled/Maps/Tilesets/0 - That Old Army Game.tmx
 
 # Workflow
