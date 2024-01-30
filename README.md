@@ -41,7 +41,21 @@ Here's how the scripts can be integrated with Tiled:
 4. Repeat step 2, this time, create a new command for exporting and call it "Export to Save State". Fill it out the same way except for these arguments: level2state.py %mapfile STATE.BST %mappath
 5. Create a new map file (File->New->New Map...). Just click OK when a new box appears, the script will fill out the dimensions for us.
 6. Use the command feature to import the level data (File->Commands->Import from Save State).
-7. In order to actually see anything, a tileset is required. The script specifies the tileset to be the name of the level in-game and the path is specified to be inside a folder called Tilesets, relative to where the map is..
-   - For example: From the first level, file test.tmx is saved to C:/Tiled/Maps/test.tmx. Tileset will be loaded from C:/Tiled/Maps/Tilesets/0 - That Old Army Game.tmx
+7. In order to actually see anything, a tileset is required. The script specifies the tileset to be the name of the level in-game and the path is specified to be inside a folder called Tilesets, relative to where the map is.
+   - For example: From the first level, file test.tmx is saved to C:/Tiled/Maps/test.tmx.
+   - Tileset will be loaded from C:/Tiled/Maps/Tilesets/0 - That Old Army Game.tmx
 
 # Workflow
+Given that everything is up and running, this is how you would get started:
+1. Load the ROM in BSNES, fast-forward to the Etch-n-Sketch screen. Wait a few seconds while holding fast-forward.
+   - The game has fairly long loading times, and from first seeing the Etch-n-Sketch loading screen, it will take a few seconds before the game has uncompressed the level tile data.
+   - To make sure everything is loaded, use the fast-forward feature in the emulator and wait a few seconds before you make a save state. The game has loaded all relevant data into RAM if the screen fades out at the press of a button.
+2. Make a save state on slot 1 and 2, given that the path is linked to save state 1.
+3. In Tiled: Import from Save State.
+4. Customize level.
+5. Now use Export to Save State.
+   - The data is exported to the same state that you read from, so the process can be continuous. If you want to clear the level, simply load state 2 and save it into state 1.
+6. Load save state 1. Press any button to progress from the Etch-n-Sketch screen. You should now see the changes that you've made once the level has loaded.
+
+### Notes
+   - You can both save and load while already inside a level, but it's much more instable. All creature objects will also be in a different position. If the save state is loaded from the loading screen, none of the creatures have moved.
