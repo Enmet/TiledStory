@@ -60,3 +60,13 @@ Given that everything is up and running, this is how you would get started:
 ### Notes
    - You can both save and load while already inside a level, but it's much more instable. All creature objects will also be in a different position. If the save state is loaded from the loading screen, none of the creatures have moved.
    - These scripts only save and load from data in RAM. Level data in RAM is already uncompressed, but the data in ROM is compressed. At the time of writing, I have not figured out how the level compression works, so the level can not be saved to a ROM file.
+   - Tilesets are not included, because they would contain game assets. You can technically edit the level without a tileset but it would obviously be difficult to see what you're doing.
+
+## More notes on tilesets
+I painstakingly made my own tilesets by taking screen shot dumps from the Tile viewer in the emulator. Because I can't share these, the best method would probably be to create a tool so that the user can rip these themselves.
+
+Here's some information on how they have to be setup:
+  - Tilesets are 16x16 tiles in size, or 512x512 pixels. Each tile in the game is 32x32 pixels in size.
+  - The game uses different layers for tiles: one for the front view and one for the parallax view. Parallax tiles are trickier to work with because you have to view the from a certain offset in game to see them.
+  - Although each tile is stored in a single byte (0-255), Tiled handles the tileset a bit different. The first tile in the grid has to be tile 1, and the last will be 256. 256 is an invalid tile so just draw anything you want there.
+  - Tiles 254 and 255 will always be stars, spinning counter-clockwise and clockwise respectively. The only exception I've seen is during the boss fights. Stars are also instantly updated if you manually edit tiles in an emulator.
