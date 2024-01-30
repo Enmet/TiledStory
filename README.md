@@ -53,7 +53,7 @@ Given that everything is up and running, this is how you would get started:
    - To make sure everything is loaded, use the fast-forward feature in the emulator and wait a few seconds before you make a save state. The game has loaded all relevant data into RAM if the screen fades out at the press of a button.
 2. Make a save state on slot 1 and 2, given that the path is linked to save state 1.
 3. In Tiled: Import from Save State.
-4. Customize level.
+4. Customize level and save it in Tiled.
 5. Now use Export to Save State.
    - The data is exported to the same state that you read from, so the process can be continuous. If you want to clear the level, simply load state 2 and save it into state 1.
 6. Load save state 1. Press any button to progress from the Etch-n-Sketch screen. You should now see the changes that you've made once the level has loaded.
