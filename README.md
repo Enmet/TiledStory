@@ -70,3 +70,4 @@ Here's some information on how they have to be setup:
   - The game uses different layers for tiles: one for the front view and one for the parallax view. Parallax tiles are trickier to work with because you have to view the from a certain offset in game to see them.
   - Although each tile is stored in a single byte (0-255), Tiled handles the tileset a bit different. The first tile in the grid has to be tile 1, and the last will be 256. 256 is an invalid tile so just draw anything you want there.
   - Tiles 254 and 255 will always be stars, spinning counter-clockwise and clockwise respectively. The only exception I've seen is during the boss fights. Stars are also instantly updated if you manually edit tiles in an emulator.
+  - Tile 0 is an empty tile.
