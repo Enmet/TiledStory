@@ -21,12 +21,12 @@ The script also handles creatures. Creatures are any moving object, obstacle, en
 -Tiled Map Editor - I've been using 1.10.2, which is the latest version as of writing.
 -Unheadered SNES ROM of Toy Story, US-version.
 
-# Setup
+## Setup
 At the moment, this is how I set up my workflow.
 The process is divided into two scripts:
 
->state2level.py: Imports save state data and outputs Tiled CSV level data
->level2state.py: Does the opposite, import Tiled CSV level data and outputs into a save state
+#state2level.py: Imports save state data and outputs Tiled CSV level data
+#level2state.py: Does the opposite, import Tiled CSV level data and outputs into a save state
 
 Here's how the scripts can be integrated with Tiled:
 1. Create some custom commands inside of Tiled (File->Commands->Edit Commands...).
