@@ -44,6 +44,7 @@ Here's how the scripts can be integrated with Tiled:
 7. In order to actually see anything, a tileset is required. The script specifies the tileset to be the name of the level in-game and the path is specified to be inside a folder called Tilesets, relative to where the map is.
    - For example: From the first level, file test.tmx is saved to C:/Tiled/Maps/test.tmx.
    - Tileset will be loaded from C:/Tiled/Maps/Tilesets/0 - That Old Army Game.tmx
+   - You can grab the sample tileset and tilesheet from the Tilesets folder in this repo.
 
 # Workflow
 Given that everything is up and running, this is how you would get started:
