@@ -59,3 +59,4 @@ Given that everything is up and running, this is how you would get started:
 
 ### Notes
    - You can both save and load while already inside a level, but it's much more instable. All creature objects will also be in a different position. If the save state is loaded from the loading screen, none of the creatures have moved.
+   - These scripts only save and load from data in RAM. Level data in RAM is already uncompressed, but the data in ROM is compressed. At the time of writing, I have not figured out how the level compression works, so the level can not be saved to a ROM file.
