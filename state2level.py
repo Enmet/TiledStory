@@ -5,6 +5,7 @@ import re               #We need regex to help us search through the csv format 
 import os               #Used for some file read/write features
 import sys              #Used for some file read/write features
 import argparse         #Used to parse arguments so that this script can be used with Tiled's command feature
+import subprocess
 
 #Argument parser function
 parser = argparse.ArgumentParser(
@@ -16,16 +17,28 @@ parser.add_argument('statefile')                     #The path to the save state
 parser.add_argument('levelfile')                     #Tiled supports parsing the filename that it is currently editing into this script, %mapfile
 parser.add_argument('levelpath')                     #This is sent directly from a Tiled variable called %mappath
 parser.add_argument('--tileset',required=False)      #Optional: Tileset used for the level file. Not technically required, but the user definitely will want one
+parser.add_argument('--importmode', 
+                    metavar='M',
+                    help='Import mode (0-1). 0 if importing from a save state, 1 if importing directly from ROM',
+                    required=False,
+                    default='0')
+parser.add_argument('--rnc', 
+                    metavar='R',
+                    help='Path to RNC compression runtimes. Required if using export mode 1',
+                    required=False,
+                    default=None)   
 
 args = parser.parse_args()
-print("Save state file:", args.statefile,"\nLevel file:",args.levelfile,args.tileset)
+print("Save state file:", args.statefile,"\nLevel file:",args.levelfile,"\nTile set:",args.tileset)
 
 fileName = args.statefile                           #Save state to read the level data from
 levelFile = args.levelfile                          #Tiled level file, the data read from the save state will be exported here
 tiledPath = args.levelpath                          #Path to the map file, as parsed from Tiled
+rncPath = args.rnc                                  #Path to RNC runtimes (import mode 1)
 
 file = open(fileName,"r+b")                         #Points to the RAM dump or save state we want to load from in binary write mode
 stateSize = 289885                                  #Exact size of a BSNES save state, a fail safe just in case an invalid file was chosen
+romSize = 4194304                                   #Exact size of ROM, fail safe for import mode 1
 
 #Offsets will be defined here. They are all defined as stateOffset+value because then this script can be adjusted for different emulator save state formats
 #RAM dump will have offset 0x0, while a BSNES-plus save state has an offset of 0x21C to get to the same address
@@ -39,6 +52,23 @@ createNew = True                                    #If true, this script create
 creatureAmt = 0                                     #Total amount of valid creatures found inside the level
 creatureFull = []                                   #Creature attribute table
 creatureFullByte = []                               #Creature attribute table (8-bit mode)
+
+if (os.path.getsize(fileName) != stateSize) and (args.importmode == '0'):
+    print("ERROR: Save state has the wrong file size. Has the correct file been chosen?")
+    file.close()
+    sys.exit()
+if ((os.path.getsize(fileName) != romSize) and (args.importmode == '1')):
+    print("ERROR: ROM has the wrong file size. Has the correct file been chosen?")
+    file.close()
+    sys.exit()
+
+if (re.search('[^0-9]',levelFile)):                 #For exportmode 1, we need to find out which level this is, so look at the numbers in the level file.
+    lIndex = int(re.sub('[^0-9]', '', levelFile))
+    print("Found level index:",lIndex)
+elif not (re.search('[^0-9]',levelFile)) and (args.importmode == 1): 
+    print("ERROR: Can not find which level to import from. Create a level file with a number (0-15) and then try again")
+    file.close()
+    sys.exit()
 
 #INCOMPLETE: Objects can be created in Tiled with an included sprite. Then they can be added to this table in succession
 creatureSets = ["Woody.tsx",
@@ -96,6 +126,27 @@ lWidth = [
     1024,
     32,
     512
+]
+
+#Offsets where in ROM the levels are stored
+lOffset = [
+    '0x00163D19',
+    '0x0013390D',
+    '0x00240000',
+    '0x0033B433',
+    '0x00286248',
+    '0x001ABB81',
+    '0x00137B19',
+    '0x002025F4',
+    '0x00138000',
+    '0x00124902',
+    None,                                       #Really Inside the Claw Machine (3D level = no tiles)
+    None,                                       #The Claw, I've yet to figure out how the tile map works in this level...
+    '0x00118000',
+    '0x001DF5FD',
+    '0x00184EC0',
+    '0x003580E8',
+    '0x00307431'
 ]
 
 #This list stores the name of all the levels, exclamation points are removed (such as from "The Claw!"), useful when writing to a new file 
@@ -230,11 +281,31 @@ creatureEntryByte = [
 ]
 
 def readMap():
-    levelSize = int("2000", 16)                 #Size of the level in hex (should be 8192 or 0x2000, which is full size)
     columnSize = 64                             #Size of the columns used for formatting the output file
+    levelSize = int("2000", 16)                 #Size of the level in hex (should be 8192 or 0x2000, which is full size)
     insertAmt = levelSize/columnSize            #Defines how many times newlines have to be inserted into the list
-    file.seek(levelOffset, 0)                   #Seek to offset where the level tiles are located before data is read
-    number=list(file.read(levelSize))           #Read the entire level from RAM, specified from offset
+    if (args.importmode == '0'):
+        file.seek(levelOffset, 0)                   #Seek to offset where the level tiles are located before data is read
+        number=list(file.read(levelSize))           #Read the entire level from RAM, specified from offset
+    elif (args.importmode == '1'):
+        if rncPath == None:
+            print("ERROR: No path was specified for RNC runtimes!")
+            file.close()
+            sys.exit()
+        if lOffset[lIndex] == None:                                 #Really Inside (3D level, self-explanatory) and The Claw (unknown as of know)
+            print("ERROR: Level not supported.")
+            file.close()
+            sys.exit()
+        if (lIndex < 0) or (lIndex > 16):
+            print("ERROR: Invalid level index!")
+            file.close()
+            sys.exit()
+        print("\n--Import mode selected: 1 (ROM)\n")
+        subprocess.run([rncPath, "u", fileName, "TS_UNCOMPRESSED.bin", "-i={0}".format(lOffset[lIndex])])
+        print("----HELLO----", "-i={0}".format(lOffset[lIndex]))
+        packLvl = open("TS_UNCOMPRESSED.bin","r+b")
+        number=list(packLvl.read())
+    
     starAmt = 0                                 #Keeps track of the total amount of stars, may be helpful when trying to reach 50
     i = 0
     while i < len(number):
@@ -384,8 +455,12 @@ def editFile():
     writeLevel.close()
 
 def makeFile():
+    global creatureAmt
     outfile = open(levelFile, 'w')
-    w = lWidth[lIndex[0]]
+    if (args.importmode == '1'):
+        w = lWidth[lIndex]
+    elif (args.importmode == '0'):
+        w = lWidth[lIndex[0]]
     h = int(8192 / w)                       #Levels can be 8192 bytes max, level width is stored in a table so we can divide max size with that width to get the height
     print("Level dimensions:",w,"x",h,"tiles")
     
@@ -403,27 +478,38 @@ def makeFile():
         "</objectgroup>\n",
         "</map>\n"
     ]
-    
     fullMap = readMap()                                     #Read the map raster
-    fullCreatures = readCreatures(False)                    #Read in 16-bit mode (useful for all coordinate variables)
-    fullCreaturesByte = readCreatures(True)                 #Read in 8-bit mode (required for some variables as the 16-bit mode read can end up combining two unrelated values)
-    print("Number of creatures loaded:",creatureAmt)        #This tells us how many creatures are actually put into the level
     mapSetup = []
+    if (args.importmode == '1'):
+        creatureAmt = 0
+        woodyY = 0
+        woodyX = 0
+        borderX = 0
+        borderY = 0
+        borderW = 0
+        borderH = 0
+        levelID = str(lIndex)
+        levelTitle = str(lName[lIndex])
+    elif (args.importmode == '0'):
+        fullCreatures = readCreatures(False)                    #Read in 16-bit mode (useful for all coordinate variables)
+        fullCreaturesByte = readCreatures(True)                 #Read in 8-bit mode (required for some variables as the 16-bit mode read can end up combining two unrelated values)
+        print("Number of creatures loaded:",creatureAmt)        #This tells us how many creatures are actually put into the level
+        levelID = str(lIndex[0])
+        levelTitle = str(lName[lIndex[0]])
+        file.seek(stateOffset+int("1730", 16), 0)               #If available, Woody's coordinates can be read from the save state
+        mapSetup = list(file.read(6))
+        woodyX = mapSetup[0] + (mapSetup[1]*256)
+        woodyY = mapSetup[4] + (mapSetup[5]*256)
     
-    file.seek(stateOffset+int("1730", 16), 0)               #If available, Woody's coordinates can be read from the save state
-    mapSetup = list(file.read(6))
-    woodyX = mapSetup[0] + (mapSetup[1]*256)
-    woodyY = mapSetup[4] + (mapSetup[5]*256)
+        file.seek(stateOffset+int("15A", 16), 0)                #Read the defined border size from RAM
+        mapSetup = list(file.read(8))
     
-    file.seek(stateOffset+int("15A", 16), 0)                #Read the defined border size from RAM
-    mapSetup = list(file.read(8))
-    
-    #Game stores border as variables X-start and X-end. By taking X-end and subtracting it with X-start, the width can be calculated
-    #This is required because Tiled only has a startin X and Y position for a region, and then uses a width offset from those positions
-    borderX = mapSetup[0] + (mapSetup[1]*256)
-    borderY = mapSetup[4] + (mapSetup[5]*256)
-    borderW = (mapSetup[2] + (mapSetup[3]*256)) - borderX
-    borderH = (mapSetup[6] + (mapSetup[7]*256)) + borderY
+        #Game stores border as variables X-start and X-end. By taking X-end and subtracting it with X-start, the width can be calculated
+        #This is required because Tiled only has a startin X and Y position for a region, and then uses a width offset from those positions
+        borderX = mapSetup[0] + (mapSetup[1]*256)
+        borderY = mapSetup[4] + (mapSetup[5]*256)
+        borderW = (mapSetup[2] + (mapSetup[3]*256)) - borderX
+        borderH = (mapSetup[6] + (mapSetup[7]*256)) + borderY
     x = 0
     for i in formatList:
         if x == 1:
@@ -431,8 +517,6 @@ def makeFile():
             outfile.write(reformat)
         elif x == 2:
             if args.tileset == None:                                                 #If no tileset was specified, then choose this placeholder
-                levelID = str(lIndex[0])
-                levelTitle = str(lName[lIndex[0]])
                 tileSet   = levelID+" - "+levelTitle+".tsx"                          #The placeholder is simply named after the id and title of the level
                 reformat = "\n %s" %(i.format(1,tiledPath+"/Tilesets/"+tileSet))
             else:
@@ -521,13 +605,19 @@ def makeFile():
         x += 1
     outfile.close()    
 
-if os.path.getsize(fileName) != stateSize:              #Fail safe so that we're not reading junk from the wrong file
-    print("ERROR: Save state has the wrong file size. Has the correct file been chosen?")
+if tiledPath == None:
+    print("ERROR: No map path argument was specified.")
+    file.close()
+    sys.exit()
+if levelFile == "%mapfile":
+    print("ERROR: No level file has been specified.")
+    file.close()
     sys.exit()
 
-file.seek(levelIndex, 0)                                #Read the level index to figure out what level is being handled
-lIndex=list(file.read(1))                               #The name of the level is not stored in RAM, so a table is used to print it here
-print("Level loaded from state:",lIndex[0],"-",lName[lIndex[0]])                       #Level number index + level name printed
+if (args.importmode == '0'):
+    file.seek(levelIndex, 0)                                #Read the level index to figure out what level is being handled
+    lIndex=list(file.read(1))                               #The name of the level is not stored in RAM, so a table is used to print it here
+    print("Level loaded from state:",lIndex[0],"-",lName[lIndex[0]])                       #Level number index + level name printed
 
 if createNew == True:    
     makeFile()                                          #Create a new .tmx file for Tiled to handle
