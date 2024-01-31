@@ -62,7 +62,7 @@ Given that everything is up and running, this is how you would get started:
 
 ### Notes
    - You can both save and load while already inside a level, but it's much more instable. All creature objects will also be in a different position. If the save state is loaded from the loading screen, none of the creatures have moved.
-   - These scripts only save and load from data in RAM. Level data in RAM is already uncompressed, but the data in ROM is compressed. At the time of writing, I have not figured out how the level compression works, so the level can not be saved to a ROM file.
+   - The main function of the scripts is to import/export to/from save states, but ROM files are now supported (see more below).
    - Tilesets are not included, because they would contain game assets. You can technically edit the level without a tileset but it would obviously be difficult to see what you're doing.
 
 ## More notes on tilesets
@@ -74,3 +74,8 @@ Here's some information on how they have to be setup:
   - Although each tile is stored in a single byte (0-255), Tiled handles the tileset a bit different. The first tile in the grid has to be tile 1, and the last will be 256. 256 is an invalid tile so just draw anything you want there.
   - Tiles 254 and 255 will always be stars, spinning counter-clockwise and clockwise respectively. The only exception I've seen is during the boss fights. Stars are also instantly updated if you manually edit tiles in an emulator.
   - Tile 0 is an empty tile.
+
+## ROM import/export
+With the help of (RNC ProPack compression tools)[https://github.com/lab313ru/rnc_propack_source], it is now possible to read and write the level data directly from ROM. 
+  - Replace the __savestate__ command line with a ROM file for both scripts, and then add a new command line depending on if you're exporting (**--exportmode 1**)) or importing (**--importmode 1**). By default these two modes are off (0).
+  - Add a command line that links to the RNC ProPack runtimes with **--rnc**, pointing to the .exe file of the compressor.
