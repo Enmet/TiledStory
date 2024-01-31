@@ -76,6 +76,6 @@ Here's some information on how they have to be setup:
   - Tile 0 is an empty tile.
 
 ## ROM import/export
-With the help of (RNC ProPack compression tools)[https://github.com/lab313ru/rnc_propack_source], it is now possible to read and write the level data directly from ROM. 
+With the help of [RNC ProPack compression tools](https://github.com/lab313ru/rnc_propack_source), it is now possible to read and write the level data directly from ROM. 
   - Replace the __savestate__ command line with a ROM file for both scripts, and then add a new command line depending on if you're exporting (**--exportmode 1**)) or importing (**--importmode 1**). By default these two modes are off (0).
   - Add a command line that links to the RNC ProPack runtimes with **--rnc**, pointing to the .exe file of the compressor.
