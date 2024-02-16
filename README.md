@@ -34,7 +34,7 @@ Here's how the scripts can be integrated with Tiled:
 1. Create some custom commands inside of Tiled (File->Commands->Edit Commands...).
 2. \<new command> should appear in the list. Click it and rename it to create and name a new command.
    - Let's start with "Import from Save State". The fields can be filled out like this:
-   - Executable: Link to the python runtime. (Example: C:/Python3/python.exe)
+   - Executable: Link to the python runtime. (Example: C:/Python3/python.exe) (Note: If installed, simply just type **python** here.)
    - Arguments: **FILE.PY STATE.BST MAPFILE.TMX PATH/TO/MAP** (Example: **state2level.py "C:/Program Files/BSNES-Plus-v05/states/Toy Story (U) [!]-1.bst" %mapfile %mappath**)
    - Working Directory: Path to the folder where the python scripts are located, but this can be specified in the first argument instead.
    - Shortcut: Optional key command
