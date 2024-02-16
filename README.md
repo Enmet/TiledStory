@@ -82,7 +82,8 @@ With the help of [RNC ProPack compression tools](https://github.com/lab313ru/rnc
 
 ## Tileset importer
 Automatically importing a tileset graphics sheet from a save state can now be done with the help of the script called *readtileset.py*. 
-This script requires the opencv2 for Python. It can be installed with pip using: > python -m pip install opencv-python
+This script requires the opencv2 for Python. It can be installed with pip using: 
+> python -m pip install opencv-python
 A few notes on the script so far:
   - The script only works for the first level in the game.
   - The pallette is a bit messed up, but the tiles should be coherent enough so that they can be used to aid in level design.
