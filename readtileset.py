@@ -6,20 +6,26 @@ import cv2
 import numpy as np
 import argparse
 import subprocess
+import sys
+import os
+import re
 
 parser = argparse.ArgumentParser(
                     prog='Readtileset',
                     description='Toy Story SNES Tileset Exporter - Read a BSNES-Plus or other SNES emulator save state and export the tilemap to Tiled.',
-                    epilog='Usage: readtileset INPUT TILESET IMPORTMODE RNC')
+                    epilog='Usage: readtileset state levelfile --tileset --importmode --rnc')
 
 parser.add_argument('statefile', 
                     metavar='S',
-                    help='BSNES save state file to read from (.bst). ROM file if in mode 1')                     
-parser.add_argument('tileset', 
+                    help='BSNES save state file to read from (.bst). ROM file if in mode 1')    
+parser.add_argument('levelfile', 
+                    metavar='L',
+                    help='Tiled level file to read from (.tmx)')                    
+parser.add_argument('--tileset', 
                     metavar='T',
                     help='Saves the tileset at the user specified location')
 parser.add_argument('--importmode', 
-                    metavar='M',
+                    metavar='I',
                     help='Import mode (0-1). 0 if importing from a save state, 1 if importing directly from ROM',
                     required=False,
                     default='0')
@@ -30,18 +36,64 @@ parser.add_argument('--rnc',
                     default=None)   
 
 args = parser.parse_args()
-print("Save state file:", args.statefile,"\nTile set:",args.tileset)
+print("Save state file:", args.statefile,"\nTileset path:",args.tileset)
 
+levelFile = args.levelfile
 fileName = args.statefile                           #Save state to read the level data from
-tilesetPath = args.tileset
+tilesetPath = args.tileset                          #The user can specify a custom tileset path
 file = open(fileName,"r+b")                         #Points to the RAM dump or save state we want to load from in binary write mode
+stateSize = 289885                                  #Exact size of a BSNES save state, a fail safe just in case an invalid file was chosen
+romSize = 4194304                                   #Exact size of ROM, fail safe for import mode 1
 
 stateOffset = int("21C", 16)                        #Offset from 0 off save states, when used with a BSNES RAM dump this should be just 0
 tilemapOffset = stateOffset+int("2B20", 16)         #Starting tile in the tilemap
 vramOffset = stateOffset+int("18000", 16)           #VRAM starting address in save state
 cgramOffset = stateOffset+int("40220", 16)
+levelIndex = stateOffset+int("1A", 16)              #Level index
 
 exampleTileID = vramOffset+int("1A0", 16)           #Locates the specific tile inside VRAM
+
+if (args.importmode == '1'):                        #Coming soon, need to figure out ROM addresses for the RNC packets before this can be implemented
+    print("Importing from ROM file is not yet supported with this script.")
+    file.close
+    sys.exit()
+if (os.path.getsize(fileName) != stateSize) and (args.importmode == '0'):
+    print("ERROR: Save state has the wrong file size. Has the correct file been chosen?")
+    file.close()
+    sys.exit()
+if ((os.path.getsize(fileName) != romSize) and (args.importmode == '1')):
+    print("ERROR: ROM has the wrong file size. Has the correct file been chosen?")
+    file.close()
+    sys.exit()
+if (re.search('[^0-9]',levelFile)) and not ((levelFile != "%mapfile") or (levelFile != None)):       
+    lIndex = int(re.sub('[^0-9]', '', levelFile))
+    print("Found level index:",lIndex)
+elif not (re.search('[^0-9]',levelFile)) and (args.importmode == '1'): 
+    print("ERROR: Can not find which level to import from. Create a level file with a number (0-15) and then try again")
+    file.close()
+    sys.exit()
+elif not ((re.search('[^0-9]',levelFile)) or levelFile == "%mapfile") and (args.importmode == '0'):
+    print("No map file is loaded.")
+
+lName = [
+    "That Old Army Game",
+    "Red Alert",
+    "Ego Check",
+    "Nightmare Buzz",
+    "A Buzz Clip",
+    "Revenge Of The Toys",
+    "Run, Rex, Run",
+    "Buzz Battle",
+    "Food And Drink",
+    "Inside The Claw Machine",
+    "Really Inside The Claw Machine",
+    "The Claw",
+    "Sid's Workbench",
+    "Battle Of The Mutant Toys",
+    "Roller Bob",
+    "Light My Fire",
+    "Rocket Man"
+]
 
 def swapEndian(tableCopy):                          #Converts little endian to big endian, and big endian to little endian by swapping bytes in list
     x = 0
@@ -225,10 +277,48 @@ def drawTileset():
     colTable2 = colTable2.reshape(32*z,512,3)
     cv2.imwrite(tilesetPath, colTable2)
 
-    #cv2.imshow("image",colTable2)
-    #cv2.waitKey(0)
-    #cv2.destroyAllWindows()
-
+if (args.importmode == '0'):
+    file.seek(levelIndex, 0)                                #Read the level index to figure out what level is being handled
+    lIndex=list(file.read(1))                               #The name of the level is not stored in RAM, so a table is used to print it here
+    print("Tileset loaded from save state:",lIndex[0],"-",lName[lIndex[0]])                       #Level number index + level name printed
+ 
+if (tilesetPath == None) or (tilesetPath =="%mappath"):
+    print("No tileset path was specified. Saving tileset to current working directory.") 
+    tilesetPath = str(lIndex[0])+" - "+lName[lIndex[0]]+".png"
+else:
+    tilesetPath = tilesetPath + "/Tilesets/"
+    if not os.path.exists(tilesetPath):
+        os.makedirs(tilesetPath)
+        print(tilesetPath)
+        print("Folder for tilesets does not exist. Creating a new folder in the same folder as the map file.")
+    tilesetPath = tilesetPath + str(lIndex[0])+" - "+lName[lIndex[0]]+".png"
+    print("Saving tileset to:",tilesetPath)
+    #This is the formatting of Tiled's .tsx file, this may change though with later versions of Tiled. If so, this list has to be adjusted accordingly
+    formatList = [
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n",
+        "<tileset version=\"1.10\" tiledversion=\"1.10.2\" name=\"{0}\" tilewidth=\"32\" tileheight=\"32\" tilecount=\"256\" columns=\"16\">\n",
+        " <image source=\"{0}\" trans=\"010101\" width=\"512\" height=\"512\"/>\n",
+        "</tileset>\n"
+    ]
+    
+    tsxFile = tilesetPath
+    tsxFile = tsxFile.replace('.png','.tsx')
+    tsx = open(tsxFile, 'w')
+    print("Saving tileset tsx file to:",tsxFile)
+    x = 0
+    for i in formatList:
+        if x == 1:
+            reformat = "\n %s" %(i.format(lName[lIndex[0]]))
+            tsx.write(reformat)
+        elif x == 2:
+            reformat = "\n %s" %(i.format(tilesetPath))
+            tsx.write(reformat)
+        else:
+            tsx.write(i)
+        x += 1
+    tsx.close()
+    
+    
 drawTileset()
 
 file.close()
