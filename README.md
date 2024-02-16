@@ -87,8 +87,7 @@ This script requires the opencv2 for Python. It can be installed with pip using:
 python -m pip install opencv-python
 ```
 A few notes on the script so far:
-  - The script only works for the first level in the game.
+  - The script only works for levels that use mode 1 (4bpp) at the moment, this includes the first level and "Revenge of the Toys".
   - The pallette is a bit messed up, but the tiles should be coherent enough so that they can be used to aid in level design.
-  - Some tiles are completely corrupted, such as some of the book tiles. I have yet to figure out why.
   - Tilesets are saved as *.png* in a folder called *Tilesets*. Where this folder is created depends on what is parsed in the command line. Use ***%mappath*** to store the folder in the same directory as the map itself.
   - Importing from ROM is not yet supported with this script.
