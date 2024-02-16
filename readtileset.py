@@ -205,6 +205,12 @@ def drawFullTile(tileIndex):
         numberLE = list(file.read(32))                          #Read the full tile
         numberBE = swapEndian(numberLE)                         #Swap from little to big endian
         partTile = drawTilePart(numberBE)                       #The key function that triggers the chain of reading pixel data all the way down
+        if hMirror != 0:
+            for idx,i in enumerate(partTile):
+                partTile[idx] = list(reversed(partTile[idx]))   #Iterate through tile and reverse every row if H-flag is on
+        if vMirror != 0:
+            if sum(sum(x) for x in partTile) > 0:               #For v-flag, the entries themselves are flipped
+                partTile = list(reversed(partTile))
         for i in partTile:
             for m in i:    
                 if m == 0:                                      #Set transparent tiles to a very specific number so that the sheet can be chroma-keyed
