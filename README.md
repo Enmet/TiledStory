@@ -79,3 +79,13 @@ Here's some information on how they have to be setup:
 With the help of [RNC ProPack compression tools](https://github.com/lab313ru/rnc_propack_source), it is now possible to read and write the level data directly from ROM. 
   - Replace the __savestate__ command line with a ROM file for both scripts, and then add a new command line depending on if you're exporting (**--exportmode 1**)) or importing (**--importmode 1**). By default these two modes are off (0).
   - Add a command line that links to the RNC ProPack runtimes with **--rnc**, pointing to the .exe file of the compressor.
+
+## Tileset importer
+Automatically importing a tileset graphics sheet from a save state can now be done with the help of the script called *readtileset.py*. 
+This script requires the opencv2 for Python. It can be installed with pip using: > python -m pip install opencv-python
+A few notes on the script so far:
+  - The script only works for the first level in the game.
+  - The pallette is a bit messed up, but the tiles should be coherent enough so that they can be used to aid in level design.
+  - Some tiles are completely corrupted, such as some of the book tiles. I have yet to figure out why.
+  - Tilesets are saved as *.png* in a folder called *Tilesets*. Where this folder is created depends on what is parsed in the command line. Use ***%mappath*** to store the folder in the same directory as the map itself.
+  - Importing from ROM is not yet supported with this script.
