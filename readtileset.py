@@ -18,8 +18,9 @@ parser = argparse.ArgumentParser(
 parser.add_argument('statefile', 
                     metavar='S',
                     help='BSNES save state file to read from (.bst). ROM file if in mode 1')    
-parser.add_argument('levelfile', 
+parser.add_argument('--levelfile', 
                     metavar='L',
+                    required=False,
                     help='Tiled level file to read from (.tmx)')                    
 parser.add_argument('--tileset', 
                     metavar='T',
@@ -65,15 +66,16 @@ if ((os.path.getsize(fileName) != romSize) and (args.importmode == '1')):
     print("ERROR: ROM has the wrong file size. Has the correct file been chosen?")
     file.close()
     sys.exit()
-if (re.search('[^0-9]',levelFile)) and not ((levelFile != "%mapfile") or (levelFile != None)):       
-    lIndex = int(re.sub('[^0-9]', '', levelFile))
-    print("Found level index:",lIndex)
-elif not (re.search('[^0-9]',levelFile)) and (args.importmode == '1'): 
-    print("ERROR: Can not find which level to import from. Create a level file with a number (0-15) and then try again")
-    file.close()
-    sys.exit()
-elif not ((re.search('[^0-9]',levelFile)) or levelFile == "%mapfile") and (args.importmode == '0'):
-    print("No map file is loaded.")
+if levelFile != None:
+    if (re.search('[^0-9]',levelFile)) and not ((levelFile != "%mapfile") or (levelFile != None)):       
+        lIndex = int(re.sub('[^0-9]', '', levelFile))
+        print("Found level index:",lIndex)
+    elif not (re.search('[^0-9]',levelFile)) and (args.importmode == '1'): 
+        print("ERROR: Can not find which level to import from. Create a level file with a number (0-15) and then try again")
+        file.close()
+        sys.exit()
+    elif not ((re.search('[^0-9]',levelFile)) or levelFile == "%mapfile") and (args.importmode == '0'):
+        print("No map file is loaded.")
 
 lName = [
     "That Old Army Game",
@@ -108,7 +110,7 @@ def swapEndian(tableCopy):                          #Converts little endian to b
     return(tablePaste)
 
 def splitPlane(planeByte):                          #This function splits the bit planes by converting the int to a binary number and put it as a list
-    planeList = []
+    planeList = []                                  #These will be rebuilt from scratch by assigning 0 or 1, and then adding the planes together
     x = 0
     bitID = 128                                     #Start with the highest byte and shift downwards
     while x < 8: 
@@ -142,20 +144,20 @@ def compositePlanes(row,tilepart):                              #Puts together 8
     x = 0
     bitPlane = []
     planeMult = 1  
-    while x < 4:
-        if x > 1:
-            bitPlane = splitPlane(tilepart[x+14+(row*2)])
+    while x < 4:                                                #4 bpp mode: Read 4 bytes from VRAM and then put them together into a single row (8x1 pixels)
+        if x > 1:                                               #First two bytes are stored consecutively, the other two bytes need an offset 
+            bitPlane = splitPlane(tilepart[x+14+(row*2)])       #14 because we're already indexing with x = 2  at this point = 16th byte = second segment
         else:
-            bitPlane = splitPlane(tilepart[x+(row*2)])
-        while y < 8:
+            bitPlane = splitPlane(tilepart[x+(row*2)])          #This is read during the first two bytes
+        while y < 8:                                            #4 bits per pixel = 8 different colors
             newPlane[y] = newPlane[y] + (bitPlane[y] * planeMult)
             y += 1
         x += 1
-        planeMult = planeMult << 1
+        planeMult = planeMult << 1                              #Shift left for every plane
         y = 0
     return newPlane
 
-def drawTilePart(tilepart):                                     
+def drawChar(tilepart):                                         #Character is the formal name for one 8x8 part of a tile
     partTile = []                                               
     z = 0                                                       
     while z < 8:
@@ -204,12 +206,12 @@ def drawFullTile(tileIndex):
         file.seek(vramOffset+(tileAdr*32), 0)                   #From tilemap, find tile segment in VRAM
         numberLE = list(file.read(32))                          #Read the full tile
         numberBE = swapEndian(numberLE)                         #Swap from little to big endian
-        partTile = drawTilePart(numberBE)                       #The key function that triggers the chain of reading pixel data all the way down
+        partTile = drawChar(numberLE)                           #The key function that triggers the chain of reading pixel data all the way down
         if hMirror != 0:
             for idx,i in enumerate(partTile):
                 partTile[idx] = list(reversed(partTile[idx]))   #Iterate through tile and reverse every row if H-flag is on
         if vMirror != 0:
-            if sum(sum(x) for x in partTile) > 0:               #For v-flag, the entries themselves are flipped
+            if sum(sum(x) for x in partTile) > 0:               #For v-flag, the order of the list entries themselves are flipped
                 partTile = list(reversed(partTile))
         for i in partTile:
             for m in i:    
@@ -292,7 +294,10 @@ if (tilesetPath == None) or (tilesetPath =="%mappath"):
     print("No tileset path was specified. Saving tileset to current working directory.") 
     tilesetPath = str(lIndex[0])+" - "+lName[lIndex[0]]+".png"
 else:
-    tilesetPath = tilesetPath + "/Tilesets/"
+    if (re.search('/',tilesetPath)):                       #Copying paths from the explorer can sometimes use backslash. We do not want to mix these.
+        tilesetPath = tilesetPath + "/Tilesets/"
+    else:
+        tilesetPath = tilesetPath + "\\Tilesets\\"
     if not os.path.exists(tilesetPath):
         os.makedirs(tilesetPath)
         print(tilesetPath)
