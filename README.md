@@ -82,12 +82,12 @@ With the help of [RNC ProPack compression tools](https://github.com/lab313ru/rnc
 
 ## Tileset importer
 Automatically importing a tileset graphics sheet from a save state can now be done with the help of the script called *readtileset.py*. 
-This script requires the opencv2 for Python. It can be installed with pip using: 
+This script requires the opencv2 module for Python. It can be installed with pip using: 
 ```
 python -m pip install opencv-python
 ```
 A few notes on the script so far:
-  - The script only works for levels that use mode 1 (4bpp) at the moment, this includes the first level and "Revenge of the Toys".
-  - The pallette is a bit messed up, but the tiles should be coherent enough so that they can be used to aid in level design.
+  - Graphics data is being read directly from the VRAM dump in the save state. Because of this, tiles that reside within a part of the level which has not been loaded will be shown incorrectly. To combat this, the user can make a few save states in the same level at various points, create a sheet from each save state then combine them inside a graphics editor to get the complete tileset.
+  - Although the graphics are read directly from VRAM, which means only currently loaded assets will be displayed correctly, some levels have every single tile with the correct color data stored in memory. Specifically, at address 0x18000, all front-facing tiles are stored for at least the first level and "Revenge of the Toys". 
   - Tilesets are saved as *.png* in a folder called *Tilesets*. Where this folder is created depends on what is parsed in the command line. Use ***%mappath*** to store the folder in the same directory as the map itself.
   - Importing from ROM is not yet supported with this script.
