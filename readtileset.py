@@ -48,7 +48,8 @@ romSize = 4194304                                   #Exact size of ROM, fail saf
 
 stateOffset = int("21C", 16)                        #Offset from 0 off save states, when used with a BSNES RAM dump this should be just 0
 tilemapOffset = stateOffset+int("2B20", 16)         #Starting tile in the tilemap
-vramOffset = stateOffset+int("18000", 16)           #VRAM starting address in save state
+vramOffset = stateOffset+int("30000", 16)           #VRAM starting address in save state
+vram2Offset = stateOffset+int("18000", 16)
 cgramOffset = stateOffset+int("40220", 16)
 levelIndex = stateOffset+int("1A", 16)              #Level index
 
@@ -166,7 +167,7 @@ def drawChar(tilepart):                                         #Character is th
         z += 1
     return partTile
 
-def splitColorByte(Byte):                                       #SNES reads colors from a pallette stored in CGRAM, which in turn is BGR555
+def splitColorByte(Byte):                                       #SNES reads colors from a palette stored in CGRAM, which in turn is BGR555
     colTest = Byte                                              #5 bits for each color (0-31), with the highest bit being unused
     colB = (colTest & 31744) >> 10                              #To sort out these colors, the bits that we want can be shifted out
     colG = (colTest & 992) >> 5
@@ -187,7 +188,7 @@ def drawFullTile(tileIndex):
     fullTile = list(file.read(32))
     fullTile = swapEndian(fullTile)
     file.seek(cgramOffset, 0)
-    colTable = list(file.read(8*32))                            #Read all possible pallettes from color graphics RAM
+    colTable = list(file.read(8*32))                            #Read all possible palettes from color graphics RAM
     colTable = swapEndian(colTable)
     colTableByte = byteToIntList(colTable)                      #Put the two big endian bytes together to make the math a bit easier to keep track of
     x = 0
@@ -197,7 +198,7 @@ def drawFullTile(tileIndex):
     partTileRow = []
     while x < 16:
         tileAdr = fullTile[(x*2)+1]+(fullTile[x*2]*256)         #Need to read 10 bits from both of these bytes, so combine them first
-        tilePal = tileAdr & 7168                                #AND with 3 bits to get pallette
+        tilePal = tileAdr & 7168                                #AND with 3 bits to get palette
         vMirror = tileAdr & 32768                               #Vertical mirroring flag
         hMirror = tileAdr & 16384                               #Horizontal mirroring flag
         tilePri = tileAdr & 8192                                #Priority flag
@@ -206,6 +207,12 @@ def drawFullTile(tileIndex):
         file.seek(vramOffset+(tileAdr*32), 0)                   #From tilemap, find tile segment in VRAM
         numberLE = list(file.read(32))                          #Read the full tile
         numberBE = swapEndian(numberLE)                         #Swap from little to big endian
+        #if tileIndex == 1 and x == 2:
+        #    for i in numberLE:
+        #        print(hex(i))
+        #        pass
+        #    print(hex(tileAdr))
+        #    sys.exit()
         partTile = drawChar(numberLE)                           #The key function that triggers the chain of reading pixel data all the way down
         if hMirror != 0:
             for idx,i in enumerate(partTile):
@@ -333,3 +340,10 @@ else:
 drawTileset()
 
 file.close()
+
+#18B7C - Start of VRAM for left-side bookshelf character in LVL1, BST save state 
+#18B7C minus State offset (21C) = 18960 = offset is 960 for this particular character from start of VRAM
+#18000 - Complete unpacked VRAM of LVL, no parallax
+
+#3021C - Start of VRAM in LVL2
+#34E20 - Possible start of character data in LVL2
